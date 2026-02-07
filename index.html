@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Our Community Grocery Co-op</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 20px;
+            line-height: 1.6;
+            background-color: #f9f9f9;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c5f2d;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .letter {
+            background: #fefefe;
+            padding: 25px;
+            border-left: 4px solid #2c5f2d;
+            margin: 20px 0;
+            font-size: 16px;
+        }
+        .buttons {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        button {
+            background-color: #2c5f2d;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #1e4620;
+        }
+        button.secondary {
+            background-color: #6c757d;
+        }
+        button.secondary:hover {
+            background-color: #545b62;
+        }
+        .info {
+            font-size: 14px;
+            color: #666;
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f5e9;
+            border-radius: 5px;
+        }
+        .copied {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2c5f2d;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .name-input {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f0f8f0;
+            border-radius: 5px;
+            border: 2px solid #2c5f2d;
+        }
+        .name-input label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c5f2d;
+        }
+        .name-input input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .name-input input:focus {
+            outline: none;
+            border-color: #2c5f2d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📬 Support Our Community Grocery Co-op</h1>
+        <p>Thank you for supporting our community! Each time you click "Next Letter" below, you'll get a randomly matched letter and council member to help distribute support across all members. Some letters request support, others thank members who already support the co-op.</p>
+        
+        <div class="name-input">
+            <label for="userName">✏️ Enter Your Name:</label>
+            <input type="text" id="userName" placeholder="Your Name" onchange="updateLetterDisplay()">
+        </div>
+        
+        <div class="letter" id="letterContent"></div>
+        
+        <div class="buttons">
+            <button onclick="sendEmail()">📧 Open Email to Send</button>
+            <button onclick="copyLetter()" class="secondary">📋 Copy Letter</button>
+            <button onclick="newLetter()" class="secondary">🔄 Next Letter</button>
+        </div>
+        
+        <div class="info">
+            <strong>💡 How to use:</strong> Enter your name above, then click "Next Letter" to see different randomly-paired letters and council members. This helps prevent any one council member from receiving identical letters. Click "Open Email to Send" or copy the letter to send it.
+        </div>
+    </div>
+    
+    <div class="copied" id="copiedNotice">✓ Letter copied to clipboard!</div>
+
+    <script>
+        // Council members who need support letters
+        const supportNeeded = [
+            { name: "Councilwoman Figgs-Sanders", email: "deborah.figgs-sanders@stpete.org" },
+            { name: "Councilman Gerdes", email: "copley.gerdes@st.pete.org" },
+            { name: "Councilman Harting", email: "mike.harting@stpete.org" },
+            { name: "Councilwoman Hanewicz", email: "Lisset.Hanewicz@stpete.org" }
+        ];
+
+        // Council members who already support
+        const alreadySupport = [
+            { name: "Councilwoman Gabbard", email: "Brandi.Gabbard@stpete.org" },
+            { name: "Councilwoman Driscoll", email: "gina.driscoll@stpete.org" }
+        ];
+
+        // Letter templates asking for support
+        const supportLetters = [
+            {
+                subject: "Please Support the Community Grocery Co-op Resolution",
+                body: `I'm writing to urge you to vote YES on the upcoming community grocery co-op resolution. As a longtime resident, I've watched our neighborhood struggle with food access since the Midtown Walmart closed. The impact on our community has been significant and I see it every day.
+
+My neighbors and I are spending hours each week and significant gas money traveling across town just to buy fresh vegetables and basic groceries. For those without reliable transportation or who are elderly, the situation is even worse. They're stuck relying on expensive convenience stores or skipping fresh food entirely.
+
+This isn't just an inconvenience - it's affecting our community's health and economic vitality. A community-owned grocery co-op would give us local control over our food access. It would create local jobs, keep dollars circulating in our neighborhood, and ensure that everyone - regardless of income or mobility - can access affordable, nutritious food close to home.
+
+We're not asking for a handout. We're asking for a hand UP. The co-op model has proven successful in communities similar to ours across the country.
+
+I ask you to consider the hundreds of residents who are depending on you to make the right choice. Please vote YES on this resolution and help us build a healthier, more self-sufficient community.
+
+Thank you for your time and service.`
+            },
+            {
+                subject: "YES Vote Needed for Community Grocery Co-op",
+                body: `I am writing to urge your support for the community grocery co-op resolution. Access to healthy, affordable food should not depend on having a car, disposable income for gas, or hours of free time. Yet that's exactly what's required now for residents in our area.
+
+Since we lost our neighborhood grocery store, I've watched property values decline and families move away. Those who remain are paying a high price - not just in transportation costs, but in health outcomes. When the nearest affordable fresh food is miles away, people make do with what's convenient, not what's nutritious.
+
+A community co-op directly addresses this problem in a sustainable way. Unlike corporate chains that abandoned us when we stopped being profitable enough, a co-op is accountable to its member-owners. It succeeds when the community succeeds. The model has worked in dozens of similar communities nationwide, creating stable, lasting food access.
+
+We're not asking the city to run a grocery store. We're asking for your support so community members can invest our own resources into a solution we'll own and control. This is about local people taking responsibility for a local problem.
+
+I understand you face many competing priorities, but food security is foundational. Without it, nothing else works. Residents can't thrive, property values don't recover, and our neighborhood continues to struggle.
+
+Please vote YES and help us take this important step forward.
+
+Respectfully,`
+            },
+            {
+                subject: "Please Vote YES for Our Community Grocery Co-op",
+                body: `I'm writing as a concerned voter to ask for your YES vote on the community grocery co-op resolution. This issue has brought together hundreds of residents who are ready to invest our own time and resources into solving our neighborhood's food access crisis.
+
+The facts are clear: since losing our grocery store, residents face longer commutes, higher costs, and fewer healthy food options. Working people burn their lunch breaks driving to distant stores. Seniors skip fresh produce because they can't get to where it's sold. Families choose between gas money and grocery money.
+
+We've waited for the private market to solve this. It hasn't happened and it won't - our neighborhood simply isn't profitable enough for corporate chains. But we know something they don't: a business owned by the community it serves, accountable to member-owners who live here, can succeed where profit-maximizing corporations have failed.
+
+This co-op will create good local jobs, provide fresh affordable food, and give residents ownership and control over a vital community resource. It will demonstrate that in this city, we don't accept food deserts as inevitable - we work together to solve problems.
+
+I've researched co-ops in communities like ours. They work. They last. They serve their communities faithfully because the community owns them. We have the expertise, the commitment, and the community support. We just need your approval to move forward.
+
+Please vote YES on this resolution and give us the chance to prove what our community can accomplish.
+
+Sincerely,`
+            },
+            {
+                subject: "Support Needed for Community Grocery Co-op Resolution",
+                body: `I am writing to urge your support for the community grocery co-op resolution. Access to healthy, affordable food should be a right, not a privilege based on zip code or car ownership.
+
+Our neighborhood has become a food desert, and the impact is real and measurable. Residents are traveling miles for fresh produce while convenience stores charge premium prices for limited options. Elderly neighbors struggle with transportation. Working families sacrifice time and money just to feed their kids nutritious meals.
+
+A community-owned co-op is the sustainable solution we need. It's not a government handout - it's community members investing in ourselves and our neighborhood's future. Co-ops have succeeded in similar communities nationwide because they're accountable to member-owners who live there, not distant corporate shareholders.
+
+This resolution gives us the opportunity to prove that St. Petersburg doesn't accept food deserts as inevitable. We solve problems. We invest in neighborhoods. We ensure all residents can thrive.
+
+I respectfully urge you to vote YES and help us build a healthier, more equitable community.
+
+Thank you for your consideration.`
+            }
+        ];
+
+        // Thank you letter templates
+        const thankYouLetters = [
+            {
+                subject: "Thank You for Supporting Our Community Grocery Co-op",
+                body: `I wanted to take a moment to thank you for your continued support of the community grocery co-op initiative. Your advocacy for food access and neighborhood revitalization means so much to residents like me who have been working hard on this project.
+
+Since we lost our grocery store, my neighbors and I have struggled with the daily reality of a food desert. Your understanding of how this affects working families, seniors, and everyone in between has been invaluable. Your support gives us hope that real change is possible.
+
+Community members are ready to invest our time, energy, and resources into making this co-op successful. Knowing we have champions like you on City Council who understand the importance of local food access keeps us motivated and committed.
+
+Thank you for standing with our community and supporting solutions that give residents ownership and control over our neighborhood's future.
+
+With gratitude,`
+            },
+            {
+                subject: "Thank You for Your Support of the Community Co-op",
+                body: `I'm writing to express my sincere gratitude for your continued support of the community grocery co-op. Your commitment to addressing food insecurity in our neighborhood has not gone unnoticed, and it means everything to those of us working to make this project a reality.
+
+Food access shouldn't be a luxury, and your recognition of that basic truth has been a driving force behind our community's efforts. You understand that a neighborhood without affordable, fresh food can't truly thrive - and your willingness to support community-driven solutions shows real leadership.
+
+The co-op model works because it's owned by the people it serves. With your support on City Council, we're confident this project will succeed and become a model for other neighborhoods facing similar challenges.
+
+Thank you for believing in our community and for supporting our efforts to create lasting, sustainable food access for all residents.
+
+Gratefully,`
+            }
+        ];
+
+        let currentLetter = null;
+
+        function getUserName() {
+            const nameInput = document.getElementById('userName');
+            return nameInput && nameInput.value.trim() ? nameInput.value.trim() : '[Your Name]';
+        }
+
+        function getRandomItem(array) {
+            return array[Math.floor(Math.random() * array.length)];
+        }
+
+        function generateRandomLetter() {
+            // Randomly decide between support letter (70% chance) and thank you letter (30% chance)
+            // This gives more weight to support letters since there are more council members who need convincing
+            const isThankYou = Math.random() < 0.3;
+            
+            let letterTemplate, councilMember;
+            
+            if (isThankYou) {
+                letterTemplate = getRandomItem(thankYouLetters);
+                councilMember = getRandomItem(alreadySupport);
+            } else {
+                letterTemplate = getRandomItem(supportLetters);
+                councilMember = getRandomItem(supportNeeded);
+            }
+            
+            return {
+                subject: letterTemplate.subject,
+                email: councilMember.email,
+                body: `Dear ${councilMember.name},\n\n${letterTemplate.body}`
+            };
+        }
+
+        function updateLetterDisplay() {
+            if (currentLetter) {
+                displayCurrentLetter();
+            }
+        }
+
+        function displayCurrentLetter() {
+            const userName = getUserName();
+            const signature = `\n\nSincerely,\n${userName}`;
+            document.getElementById('letterContent').innerText = currentLetter.body + signature;
+        }
+
+        function displayLetter() {
+            currentLetter = generateRandomLetter();
+            displayCurrentLetter();
+        }
+
+        function sendEmail() {
+            if (!currentLetter) displayLetter();
+            
+            const userName = getUserName();
+            const subject = encodeURIComponent(currentLetter.subject);
+            const body = encodeURIComponent(currentLetter.body + `\n\nSincerely,\n${userName}`);
+            
+            window.location.href = `mailto:${currentLetter.email}?subject=${subject}&body=${body}`;
+        }
+
+        function copyLetter() {
+            if (!currentLetter) displayLetter();
+            
+            const userName = getUserName();
+            const fullLetter = currentLetter.subject + "\n\n" + currentLetter.body + `\n\nSincerely,\n${userName}`;
+            
+            navigator.clipboard.writeText(fullLetter).then(function() {
+                const notice = document.getElementById('copiedNotice');
+                notice.style.display = 'block';
+                setTimeout(() => {
+                    notice.style.display = 'none';
+                }, 2500);
+            }, function(err) {
+                alert('Failed to copy letter. Please select and copy manually.');
+            });
+        }
+
+        function newLetter() {
+            displayLetter();
+        }
+
+        // Display first letter when page loads
+        window.onload = displayLetter;
+    </script>
+</body>
+</html>
