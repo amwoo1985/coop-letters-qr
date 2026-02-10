@@ -239,7 +239,34 @@ Gratefully,`
         ];
 
         let currentLetter = null;
-        let lastCouncilMemberEmail = null;
+        let councilQueue = [];
+        
+        // Fisher-Yates shuffle algorithm
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+        
+        // Initialize or refill the council member queue
+        function refillCouncilQueue() {
+            const allCouncil = [
+                ...supportNeeded.map(cm => ({ ...cm, type: 'support' })),
+                ...alreadySupport.map(cm => ({ ...cm, type: 'thankYou' }))
+            ];
+            councilQueue = shuffleArray(allCouncil);
+        }
+        
+        // Get next council member from queue
+        function getNextCouncilMember() {
+            if (councilQueue.length === 0) {
+                refillCouncilQueue();
+            }
+            return councilQueue.pop();
+        }
 
         function getUserName() {
             const nameInput = document.getElementById('userName');
@@ -250,38 +277,20 @@ Gratefully,`
             return array[Math.floor(Math.random() * array.length)];
         }
 
-        function getRandomDifferentCouncilMember(array) {
-            // Ensure we don't get the same council member twice in a row
-            if (array.length === 1) return array[0];
-            
-            let councilMember;
-            do {
-                councilMember = getRandomItem(array);
-            } while (councilMember.email === lastCouncilMemberEmail);
-            
-            return councilMember;
-        }
-
         function generateRandomLetter() {
-            // Randomly decide between support letter (70% chance) and thank you letter (30% chance)
-            // This gives more weight to support letters since there are more council members who need convincing
-            const isThankYou = Math.random() < 0.3;
+            const councilMember = getNextCouncilMember();
+            let letterTemplate;
             
-            let letterTemplate, councilMember;
-            
-            if (isThankYou) {
+            if (councilMember.type === 'thankYou') {
                 letterTemplate = getRandomItem(thankYouLetters);
-                councilMember = getRandomDifferentCouncilMember(alreadySupport);
             } else {
                 letterTemplate = getRandomItem(supportLetters);
-                councilMember = getRandomDifferentCouncilMember(supportNeeded);
             }
-            
-            lastCouncilMemberEmail = councilMember.email;
             
             return {
                 subject: letterTemplate.subject,
                 email: councilMember.email,
+                councilName: councilMember.name,
                 body: `Dear ${councilMember.name},\n\n${letterTemplate.body}`
             };
         }
